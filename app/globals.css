@@ -3,15 +3,16 @@
 @import "tailwindcss/utilities";
 
 :root {
-  --primary: #121C27; /* headers, nav, footers */
-  --accent: #b8c103; /* CTAs, links, pricing */
-  --blue: #4285F4; /* secondary buttons, alerts */
-  --neutral: #FAFAFA; /* cards, modals, posts */
-  --input: #f5f5f5; /* forms, inputs */
-  --textDark: #1A1A1A; /* body text */
-  --textMuted: #6B7280; /* placeholders, captions */
+  --primary: #121C27;
+  --accent: #b8c103;
+  --blue: #4285F4;
+  --neutral: #FAFAFA;
+  --input: #f5f5f5;
+  --textDark: #1A1A1A;
+  --textMuted: #6B7280;
 }
 
 body {
-  @apply bg-neutral text-textDark;
+  background-color: #FAFAFA;
+  color: #1A1A1A;
 }

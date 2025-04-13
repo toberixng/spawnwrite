@@ -6,13 +6,15 @@ import { notFound } from 'next/navigation';
 
 export default async function UserProfile({ params }: { params: { username: string } }) {
   const supabase = createServerClient();
-  const { data: profile } = await supabase
+
+  const { data: profile, error } = await supabase
     .from('users')
     .select('*')
     .eq('username', params.username)
     .single();
 
-  if (!profile) {
+  if (error || !profile) {
+    console.error('Profile fetch error:', error?.message);
     notFound();
   }
 
@@ -22,7 +24,7 @@ export default async function UserProfile({ params }: { params: { username: stri
         <CardHeader>
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={profile.avatar_url} />
+              <AvatarImage src={profile.avatar_url || ''} />
               <AvatarFallback>{profile.username[0]}</AvatarFallback>
             </Avatar>
             <CardTitle className="text-primary">{profile.username}</CardTitle>

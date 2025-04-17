@@ -1,145 +1,153 @@
-// Path: /app/auth/register/page.tsx
-
 'use client'
 
-import { useState } from "react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
-import { FcGoogle } from "react-icons/fc"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 
-export default function Register() {
-  const supabase = createClient()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
+export default function RegisterPage() {
   const router = useRouter()
+  const supabase = createClient()
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
-      password,
+      password
     })
 
     if (error) {
+      setError(error.message)
       toast.error(error.message)
     } else {
-      toast.success("Registration successful, check your email for verification.")
-      router.push("/auth/login")
+      toast.success('Check your email to confirm your account.')
+      router.push('/dashboard')
     }
 
     setLoading(false)
   }
 
-  const handleGoogleOAuth = async () => {
+  const handleMagicLink = async () => {
     setLoading(true)
+    setError('')
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    const { error } = await supabase.auth.signInWithOtp({ email })
 
     if (error) {
+      setError(error.message)
       toast.error(error.message)
+    } else {
+      toast.success('Magic link sent to your email.')
     }
 
     setLoading(false)
   }
 
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      toast.error(error.message)
-    } else {
-      toast.success("Check your email for the login link.")
-    }
-
-    setLoading(false)
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    if (error) toast.error(error.message)
   }
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h2 className="text-2xl text-center mb-6">Register</h2>
-      <form onSubmit={handleSignUp} className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen flex items-center justify-center bg-[#121C27] text-[#edeee3] px-4"
+    >
+      <form
+        onSubmit={handleRegister}
+        className="bg-[#1e293b] w-full max-w-md p-6 rounded-2xl shadow-lg space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center">Create an account</h2>
+
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-[#edeee3]">Email</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
-            type="email"
-            required
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-[#121C27] text-[#edeee3] focus-visible:ring-[#4285F4]"
+            type="email"
+            required
+            className="bg-[#121C27] text-[#edeee3]"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-[#edeee3]">Password</Label>
+
+        <div className="space-y-2 relative">
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
-            type="password"
-            required
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="bg-[#121C27] text-[#edeee3] focus-visible:ring-[#4285F4]"
-          />
-        </div>
-        <Button
-          type="submit"
-          className="w-full bg-[#4285F4] text-white hover:bg-[#357ae8]"
-          disabled={loading}
-        >
-          {loading ? "Registering..." : "Sign Up"}
-        </Button>
-      </form>
-
-      <Button
-        type="button"
-        className="w-full border-[#121C27] text-[#121C27] mt-4 hover:bg-[#edeee3] hover:text-[#121C27] flex items-center gap-2"
-        onClick={handleGoogleOAuth}
-        disabled={loading}
-      >
-        <FcGoogle size={20} />
-        Continue with Google
-      </Button>
-
-      <form onSubmit={handleMagicLink} className="mt-4 space-y-3">
-        <div>
-          <Label htmlFor="magic-email" className="text-[#edeee3]">Email for Magic Link</Label>
-          <Input
-            id="magic-email"
-            type="email"
+            type={showPassword ? 'text' : 'password'}
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-[#121C27] text-[#edeee3] focus-visible:ring-[#4285F4]"
+            className="bg-[#121C27] text-[#edeee3] pr-10"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-9 text-[#edeee3] hover:text-[#121C27] transition duration-200"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
         </div>
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
         <Button
           type="submit"
-          variant="outline"
-          className="w-full border-[#121C27] text-[#121C27] mt-4 hover:bg-[#edeee3] hover:text-[#121C27]"
+          variant="default"
           disabled={loading}
+          className="w-full"
         >
-          {loading ? "Sending..." : "Send Magic Link"}
+          {loading ? <Loader2 className="animate-spin" size={20} /> : 'Sign up'}
         </Button>
+
+        <Button
+          type="button"
+          onClick={handleMagicLink}
+          disabled={loading || !email}
+          className="w-full"
+          variant="outline"
+        >
+          {loading ? <Loader2 className="animate-spin" size={20} /> : 'Send Magic Link'}
+        </Button>
+
+        <Separator className="my-4" />
+        <div className="text-center text-sm">OR</div>
+        <Button
+          type="button"
+          onClick={handleGoogleLogin}
+          variant="secondary"
+          className="w-full"
+        >
+          Continue with Google
+        </Button>
+
+        <div className="text-sm text-center pt-2">
+          Already have an account?{' '}
+          <a href="/auth/login" className="underline hover:text-[#edeee3]">
+            Login
+          </a>
+        </div>
       </form>
-    </div>
+    </motion.div>
   )
 }

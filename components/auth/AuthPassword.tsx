@@ -1,4 +1,4 @@
-// Path: /components/auth/AuthMagicLink.tsx
+// Path: /components/auth/AuthPassword.tsx
 
 'use client'
 
@@ -7,29 +7,25 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createClient } from "../../lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { motion } from 'framer-motion'
 
-export const AuthMagicLink = () => {
+export const AuthPassword = () => {
   const supabase = createClient()
   const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success("Check your email for the login link.")
+      toast.success("Logged in successfully")
     }
 
     setLoading(false)
@@ -37,15 +33,15 @@ export const AuthMagicLink = () => {
 
   return (
     <motion.form
-      onSubmit={handleMagicLink}
+      onSubmit={handleSignIn}
       className="space-y-4 p-4 bg-white rounded-2xl shadow-lg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <Label htmlFor="magic-email" className="text-[#121C27]">Enter your email to get started</Label>
+      <Label htmlFor="email" className="text-[#121C27]">Email</Label>
       <Input
-        id="magic-email"
+        id="email"
         type="email"
         required
         value={email}
@@ -53,12 +49,22 @@ export const AuthMagicLink = () => {
         className="bg-[#edeee3] text-[#121C27] text-lg p-4 rounded-lg"
         placeholder="Enter your email"
       />
+      <Label htmlFor="password" className="text-[#121C27]">Password</Label>
+      <Input
+        id="password"
+        type="password"
+        required
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="bg-[#edeee3] text-[#121C27] text-lg p-4 rounded-lg"
+        placeholder="Enter your password"
+      />
       <Button
         type="submit"
         className="w-full bg-[#121C27] text-[#edeee3] rounded-lg hover:bg-[#edeee3] hover:text-[#121C27] transition duration-200"
         disabled={loading}
       >
-        {loading ? "Sending..." : "Send Magic Link"}
+        {loading ? "Logging in..." : "Log In"}
       </Button>
     </motion.form>
   )

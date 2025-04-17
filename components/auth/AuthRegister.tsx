@@ -1,4 +1,4 @@
-// Path: /components/auth/AuthForm.tsx
+// Path: /components/auth/AuthRegister.tsx
 
 'use client'
 
@@ -8,33 +8,38 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 
-export const AuthForm = () => {
+export const AuthRegister = () => {
   const supabase = createClient()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Basic validation to check if passwords match
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match!")
+      return
+    }
+
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success("Logged in successfully")
-      router.push("/dashboard")  // Redirect to dashboard after successful login
+      toast.success("Registration successful! Please check your email to confirm your account.")
     }
 
     setLoading(false)
   }
 
   return (
-    <form onSubmit={handleSignIn} className="space-y-4">
+    <form onSubmit={handleRegister} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email" className="text-[#121C27]">Email</Label>
         <Input
@@ -42,7 +47,7 @@ export const AuthForm = () => {
           type="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
           className="bg-[#edeee3] text-[#121C27] focus-visible:ring-[#4285F4]"
         />
       </div>
@@ -53,7 +58,18 @@ export const AuthForm = () => {
           type="password"
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
+          className="bg-[#edeee3] text-[#121C27] focus-visible:ring-[#4285F4]"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword" className="text-[#121C27]">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          required
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
           className="bg-[#edeee3] text-[#121C27] focus-visible:ring-[#4285F4]"
         />
       </div>
@@ -62,11 +78,8 @@ export const AuthForm = () => {
         className="w-full bg-[#4285F4] text-white hover:bg-[#357ae8]"
         disabled={loading}
       >
-        {loading ? "Logging in..." : "Log In"}
+        {loading ? "Registering..." : "Register"}
       </Button>
-      <div className="text-center mt-4">
-        <p>Don't have an account? <a href="/auth/register" className="text-blue-500">Sign Up</a></p>
-      </div>
     </form>
   )
 }
